@@ -16,6 +16,11 @@ try:  # works as a package (python -m src.main)
 except ModuleNotFoundError:  # works as a plain script (python src/main.py)
     from recommender import load_songs, recommend_songs
 
+try:  # nice bordered tables if tabulate is installed (see requirements.txt)
+    from tabulate import tabulate
+except ModuleNotFoundError:  # pragma: no cover
+    tabulate = None
+
 # Resolve the CSV relative to the project root so it works from any directory.
 CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "songs.csv"
 
@@ -48,22 +53,49 @@ USER_PROFILES = {
 
 
 def print_recommendations(name: str, user_prefs: dict, songs: list, k: int = 5) -> None:
-    """Print the top-k recommendations for a single named profile."""
+    """Print the top-k recommendations for a single named profile as a summary table."""
     header = f"Top Recommendations — {name}"
     print(header)
     print("=" * len(header))
     prefs_summary = ", ".join(f"{key}={value}" for key, value in user_prefs.items())
     print(f"Profile: {prefs_summary}")
     print()
-    for position, (song, score, reasons) in enumerate(
-        recommend_songs(user_prefs, songs, k=k), start=1
-    ):
-        print(f"{position}. {song['title']}")
-        print(f"   Score: {score:.2f}%")
-        print("   Reasons:")
-        for reason in reasons:
-            print(f"   - {reason}")
-        print()
+
+    recommendations = recommend_songs(user_prefs, songs, k=k)
+    headers = ["#", "Song", "Artist", "Genre", "Score", "Reasons"]
+    rows = []
+    for position, (song, score, reasons) in enumerate(recommendations, start=1):
+        rows.append([
+            position,
+            song["title"],
+            song["artist"],
+            song["genre"],
+            f"{score:.2f}%",
+            "\n".join(f"- {reason}" for reason in reasons),
+        ])
+
+    if tabulate is not None:
+        # "grid" keeps every reason on its own line inside the Reasons cell.
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+    else:
+        _print_ascii_table(headers, rows)
+    print()
+
+
+def _print_ascii_table(headers: list, rows: list) -> None:
+    """Fallback table for when tabulate is not installed (reasons listed under each row)."""
+    top = ["#", "Song", "Artist", "Genre", "Score"]
+    widths = [len(h) for h in top]
+    for row in rows:
+        for i in range(5):
+            widths[i] = max(widths[i], len(str(row[i])))
+    line = "  ".join(h.ljust(widths[i]) for i, h in enumerate(top))
+    print(line)
+    print("-" * len(line))
+    for row in rows:
+        print("  ".join(str(row[i]).ljust(widths[i]) for i in range(5)))
+        for reason_line in row[5].splitlines():
+            print(f"    {reason_line}")
 
 
 def main() -> None:

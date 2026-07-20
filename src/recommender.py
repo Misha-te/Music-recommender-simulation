@@ -147,24 +147,64 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
 
 
 def recommend_songs(
-    user_prefs: Dict, songs: List[Dict], k: int = 5
+    user_prefs: Dict,
+    songs: List[Dict],
+    k: int = 5,
+    artist_penalty: float = 20.0,
+    genre_penalty: float = 10.0,
 ) -> List[Tuple[Dict, float, List[str]]]:
-    """Score every song, rank high->low, and return the top-k (song, score, reasons)."""
+    """Score, rank high->low with a diversity penalty for repeats, return top-k (song, score, reasons)."""
     # k must be a real integer -- bool is an int subclass, so reject it too.
     if isinstance(k, bool) or not isinstance(k, int):
         raise TypeError(f"k must be an integer, got {type(k).__name__}")
     if k < 0:
         raise ValueError(f"k must be non-negative, got {k}")
 
-    # Build a new list of (song, score, reasons); never mutate the catalog.
-    scored: List[Tuple[Dict, float, List[str]]] = []
+    # Base score for every song (never mutate the catalog itself).
+    pool: List[Dict] = []
     for song in songs:
         score, reasons = score_song(user_prefs, song)
-        scored.append((song, score, reasons))
+        pool.append({"song": song, "base": score, "reasons": reasons})
 
-    # sorted() returns a NEW list; slicing past the end is safe (returns all).
-    ranked = sorted(scored, key=lambda item: item[1], reverse=True)
-    return ranked[:k]
+    # Greedy diversity-aware ranking: build the list one slot at a time. Before
+    # picking the next song, penalize any candidate whose artist or genre is
+    # ALREADY in the chosen list, so the top results don't pile up on one
+    # artist/genre. Set both penalties to 0.0 to get plain score ordering.
+    chosen: List[Dict] = []
+    while pool and len(chosen) < k:
+        best = None
+        best_adjusted = -1.0
+        best_penalty = 0.0
+        best_repeats: List[str] = []
+
+        for item in pool:
+            penalty = 0.0
+            repeats: List[str] = []
+            for picked in chosen:
+                if picked["song"].get("artist") == item["song"].get("artist"):
+                    penalty += artist_penalty
+                    repeats.append(f"artist {item['song'].get('artist')}")
+                if picked["song"].get("genre") == item["song"].get("genre"):
+                    penalty += genre_penalty
+                    repeats.append(f"genre {item['song'].get('genre')}")
+            adjusted = max(0.0, item["base"] - penalty)
+            # Highest adjusted score wins; ties fall back to the raw match score.
+            if adjusted > best_adjusted or (
+                adjusted == best_adjusted and best is not None and item["base"] > best["base"]
+            ):
+                best, best_adjusted, best_penalty = item, adjusted, penalty
+                best_repeats = repeats
+
+        pool.remove(best)
+        reasons = list(best["reasons"])
+        if best_penalty > 0:
+            shared = ", ".join(sorted(set(best_repeats)))
+            reasons.append(
+                f"Diversity penalty: -{best_penalty:.0f} because its {shared} already appears above"
+            )
+        chosen.append({"song": best["song"], "score": best_adjusted, "reasons": reasons})
+
+    return [(c["song"], c["score"], c["reasons"]) for c in chosen]
 
 def build_profile(
     name: str,
