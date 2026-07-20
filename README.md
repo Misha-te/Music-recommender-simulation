@@ -11,7 +11,11 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+My version, **MusiReco 1.0**, is a content-based recommender that scores every song in the
+catalog against a listener's taste (favorite genre and mood, plus how energetic, positive,
+danceable, and acoustic they like their music) and returns the top `k` matches. Instead of
+raw points, each song gets a **0–100% score** that reads as "how good a match this is,"
+and every recommendation comes with plain-English reasons explaining the score.
 
 ---
 
@@ -337,25 +341,37 @@ Profile: genre=rock, mood=intense, energy=0.9, danceability=0.6, valence=0.45
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
-
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+- **Weight shift (sensitivity test).** I doubled the weight on energy (0.20 → 0.40) and
+  halved the weight on genre (0.30 → 0.15). Every song's percentage changed, but the
+  **ranking barely moved** — the top one or two songs stayed exactly the same for every
+  listener, and the Chill Lofi listener's whole top-5 order didn't change at all. The
+  change made the results *different in number but not in order*.
+- **Adversarial / edge-case profiles.** I tried to "trick" the scorer with conflicting
+  preferences (high energy + a sad mood), a genre that isn't in the catalog, out-of-range
+  values like `energy = 2.0`, and profiles with only one feature set. These showed the
+  scorer treats each feature independently (so it can't spot contradictions) and doesn't
+  reject bad input — useful for understanding where it breaks.
+- **Different user types.** I ran three profiles (High-Energy Pop, Chill Lofi, Deep Intense
+  Rock) and compared their outputs — see the Sample Recommendation Output above and the
+  Evaluation section of the model card.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+- **Tiny catalog.** Only 20 songs, so some listeners (like the rock fan) get one good match
+  and then a steep drop-off into songs that only partly fit.
+- **Over-weighting genre.** Genre is the heaviest feature, so the system leans hard toward a
+  listener's stated genre and can trap them in a "bubble," while good songs in other genres
+  are held back.
+- **Insensitive to tuning.** Because the catalog is small and clustered, changing the weights
+  mostly changes the percentages, not the ranking — the same crowd-pleasers keep winning.
+- **No understanding of lyrics or language**, and several real-world styles are missing
+  (including some Kenyan music), so the library doesn't represent everyone's taste.
+- **No input checking**, so contradictory or out-of-range preferences still produce a
+  confident-looking result.
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+I go deeper on these in the [model card](model_card.md).
 
 ---
 
@@ -365,10 +381,25 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+The biggest thing I learned is that most of these systems turn data into predictions using
+**probability**. Instead of a flat "yes or no," the recommender estimates a percentage — a
+likelihood that you'll enjoy a song — and ranks by that. Two ideas built on top of this
+stood out to me. The first is **exploration**: a good recommender will sometimes hand you a
+song that *doesn't* match your usual taste on purpose, just to see whether you like it and
+learn more about you. The second is **collaborative filtering**, which is about people
+instead of song features: if person A likes songs 1, 2, 3, and 4, and person B likes songs
+1, 2, and 3, then the system guesses A and B are the same "type" and recommends song 4 to
+B. Done across millions and millions of users — the kind of scale Spotify and TikTok have —
+that huge amount of data is exactly what makes their predictions feel so accurate.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+That scale is also where **bias and unfairness** creep in. When the system leans on what's
+popular with the crowd, songs that already have lots of listeners keep getting pushed, while
+niche artists and less-represented styles (like many African genres) rarely get surfaced —
+so the "rich get richer." Collaborative filtering can also box people in: if it decides
+you're a certain "type," it mostly feeds you more of the same and quietly narrows what you
+ever get to discover. My own tiny version shows a smaller version of the same problem — it
+over-trusts genre and keeps recommending the same crowd-pleasers — which made it easier to
+see how these risks would scale up in a real app.
 
 
 
