@@ -2,60 +2,60 @@
 
 ## 1. Model Name  
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
+**MusiReco 1.0** — a simple music recommender that suggests songs and explains why.
 
 ---
 
 ## 2. Intended Use  
 
-Describe what your recommender is designed to do and who it is for. 
+MusiReco recommends songs by looking at a listener's taste — their favorite genre and mood,
+and how energetic, positive, danceable, and acoustic they like their music. You tell it how
+many songs you want back (the "top k"), and for each one it gives a match percentage and a
+short list of reasons for that score.
 
-Prompts:  
+It's useful for anyone who wants to rank songs by several factors at once instead of just
+one. One assumption it makes is that **genre matters a lot** — but that isn't true for
+everyone, since some listeners care more about the overall *vibe* of a song than its
+official genre.
 
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+This is built for **classroom exploration**, not for real users.
 
 ---
 
 ## 3. How the Model Works  
 
-Explain your scoring approach in simple language.  
+Every song gets a score from 0% to 100% that estimates how much the listener will like it.
+The system compares each song to the listener's preferences one feature at a time (genre,
+mood, energy, and so on), gives each feature a "how close is it" rating, and then blends
+those together using weights that say how much each feature counts. The songs with the
+highest percentages rise to the top.
 
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+The main change I made from the starter version was moving away from a **points** system
+(like "+2 for genre, +1 for mood") to **percentages**, so the final number always lands
+between 0% and 100% and is easy to read as "how good a match this is."
 
 ---
 
 ## 4. Data  
 
-Describe the dataset the model uses.  
+The catalog has **20 songs**. It started with 10, and I added 10 more to widen the range of
+taste and include music I actually listen to.
 
-Prompts:  
+The songs cover a mix of genres — pop, lofi, rock, jazz, ambient, synthwave, funk, indie
+pop, and East African styles like afropop and bongo — and a range of moods such as happy,
+chill, intense, relaxed, moody, and romantic.
 
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+There are still gaps: plenty of real-world styles are missing, including several kinds of
+Kenyan music, so the library doesn't represent everyone's taste.
 
 ---
 
 ## 5. Strengths  
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+The system does well at what it was built for: it produces a clear ranking of songs and,
+just as importantly, a plain-English reason for each pick. Listeners with a strong, clear
+taste (very chill, or very high-energy) get results that match their intuition, and the
+reasons make it easy to see *why* a song was chosen — which builds trust in the ranking.
 
 ---
 
@@ -98,27 +98,72 @@ Prompts:
 
 No need for numeric metrics unless you created some.
 
+### Profiles I tested
+
+I built three pretend listeners with clearly different taste and ran each of them through
+the system to see who they'd be matched with:
+
+- **High-Energy Pop** — loves upbeat, happy, danceable pop.
+- **Chill Lofi** — wants calm, quiet, low-energy study music.
+- **Deep Intense Rock** — wants hard-hitting, high-energy rock.
+
+For each one I looked at whether the top songs actually "felt" like something that person
+would enjoy, and I read the reasons the system printed to make sure they lined up with the
+listener's stated taste.
+
+### What surprised me
+
+The biggest surprise was how **confident and steady** the top picks were. The number-one
+and number-two songs for each listener felt obviously right and never changed, even when I
+adjusted the settings later. The other surprise was the **Deep Intense Rock** listener:
+they got one excellent match and then a steep drop-off, because the catalog barely has any
+rock, so the system was forced to offer songs from other styles that only partly fit. That
+showed me the recommender is only as good as the variety in its music library.
+
+### Comparing the profiles (what changed, and why it makes sense)
+
+- **High-Energy Pop vs. Chill Lofi** — These two are near opposites, and the results proved
+  it. The pop listener got bright, fast, feel-good songs, while the lofi listener got quiet,
+  slow, mellow ones with almost no overlap between their lists. This makes sense because one
+  asked for high energy and happiness and the other asked for low energy and calm — the two
+  requests pull the system toward completely different corners of the catalog.
+
+- **High-Energy Pop vs. Deep Intense Rock** — Both listeners want *high energy*, so at first
+  I expected similar lists. Instead they got mostly different songs: the pop listener got
+  cheerful, danceable tracks and the rock listener got harder, more serious ones. This makes
+  sense because energy alone isn't the whole story — the mood ("happy" vs. "intense") and the
+  style ("pop" vs. "rock") sent them in different directions even though their energy level
+  was the same. It was a good sign that the system isn't just sorting everything by loudness.
+
+- **Chill Lofi vs. Deep Intense Rock** — This was the sharpest contrast. The lofi listener's
+  top songs were calm and acoustic, while the rock listener's were fast and forceful. It
+  makes sense because these two disagree on almost every setting at once — energy, mood, and
+  style — so the system had no trouble telling them apart and there was zero crossover in
+  their recommendations.
+
 ---
 
 ## 8. Future Work  
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+- Turn it into a simple web app (for example with Streamlit) so people can pick their taste
+  with sliders instead of editing code.
+- Connect it to the **Spotify API** to pull real songs and their audio features directly,
+  instead of relying on a small hand-made catalog.
 
 ---
 
 ## 9. Personal Reflection  
 
-A few sentences about your experience.  
+Working on this showed me how much of a recommendation comes from small signals about the
+listener — not just the songs you like, but the ones you replay, the ones you finish in the
+first few seconds, and even the time of day or the mood you're in. All of that gets used to
+guess what you'll want next.
 
-Prompts:  
-
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+A lot of this wasn't a total surprise, because I'd already studied how TikTok's algorithm
+works, so seeing similar scoring ideas behind Spotify made sense to me. What *did* catch my
+interest was the idea of **exploration** — that a good recommender will sometimes suggest a
+song that doesn't match your taste on purpose, just to test your reaction and learn more
+about you. It reminded me of using DJ Exxon's Spotify, where it kept surfacing songs I'd
+never heard and I'd think, "how does it know I'd like this?" Now that I understand the
+scoring and the exploration trick behind it, it feels a lot less like magic — and I can
+enjoy it while actually knowing what's going on underneath.
