@@ -17,17 +17,51 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+My recommender is **content-based**: it compares a song's audio features to what the
+user has liked before, and recommends songs that "feel" similar.
 
-Some prompts to answer:
+### What features does each `Song` use
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+I only use the three numeric audio features that are already scaled from 0 to 1, so I
+can compare them directly without any extra math:
 
-You can include a simple diagram or bullet list if helpful.
+- **energy** – how energetic/intense the song is
+- **valence** – how positive or happy the song sounds
+- **danceability** – how easy it is to dance to
+
+I left out `genre` and `mood` (they're text, so they'd need extra encoding) and
+`tempo_bpm` (it's on a much bigger scale, so it would need to be rescaled first). Using
+the three clean 0–1 features keeps the first version simple.
+
+### What information does the `UserProfile` store
+
+Each profile stores:
+
+- **Basic user info** (like a name or id)
+- **The user's average taste**, built from the songs they've listened to: their average
+  energy, average valence, and average danceability. This gives one "ideal song" that
+  represents their taste.
+- **Songs they play repeatedly**, which count more when building those averages (a song
+  you replay says more about your taste than one you heard once).
+
+### How does the `Recommender` compute a score for each song
+
+1. For a given song, I compare its energy, valence, and danceability to the user's
+   average values.
+2. The closer the song is to the user's averages, the higher its score. I turn that
+   closeness into a **percentage that estimates the probability the user will like it**
+   (for example, 70%).
+
+### How do I choose which songs to recommend
+
+- **Mostly by probability:** if a song scores high (say above ~70%), I recommend it.
+- **Sometimes I explore:** every so often I recommend a song with a *low* probability
+  (around 10%) on purpose. This helps the user discover something new, and it gives the
+  system more information about whether their taste is wider than we thought.
+- **Similar-user idea (stretch goal):** if two users have very similar taste and one of
+  them liked a song the other hasn't heard, I can recommend that song to the second user,
+  since people with similar taste tend to like similar songs. *(This one goes beyond
+  pure content-based recommending — it's a "collaborative filtering" idea I'd add later.)*
 
 ---
 
