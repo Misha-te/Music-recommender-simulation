@@ -1,0 +1,33 @@
+flowchart TD
+    subgraph INPUT["INPUT — User Prefs"]
+        U["UserProfile<br/>favorite genre + mood<br/>target energy / valence /<br/>danceability / acousticness"]
+        C["songs.csv<br/>(20 songs)"]
+    end
+
+    U --> LOOP
+    C --> LOOP
+
+    subgraph PROCESS["PROCESS — The Loop: judge every song"]
+        LOOP{"for each song<br/>in catalog"}
+        LOOP --> S1["genre match  → 0 or 1  × 30%"]
+        LOOP --> S2["mood match   → 0 or 1  × 15%"]
+        LOOP --> S3["energy sim   → 1−|Δ|   × 20%"]
+        LOOP --> S4["valence sim  → 1−|Δ|   × 15%"]
+        LOOP --> S5["dance sim    → 1−|Δ|   × 15%"]
+        LOOP --> S6["acoustic sim → 1−|Δ|   × 5%"]
+        S1 --> SUM["weighted sum<br/>= score 0–100%<br/>(prob. user likes it)"]
+        S2 --> SUM
+        S3 --> SUM
+        S4 --> SUM
+        S5 --> SUM
+        S6 --> SUM
+        SUM --> REASONS["collect top reasons<br/>e.g. 'genre match', 'similar energy'"]
+    end
+
+    REASONS --> RANK
+
+    subgraph OUTPUT["OUTPUT — The Ranking"]
+        RANK["sort all songs<br/>by score, high → low"]
+        RANK --> TOPK["take top K<br/>(default 5)"]
+        TOPK --> RESULT["Top-K recommendations<br/>each with score % + explanation"]
+    end
