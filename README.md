@@ -168,15 +168,55 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
+How the output is produced:
 
-```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
+- Each song is scored with **weighted preference matching** — every feature the user
+  cares about contributes a 0–1 sub-score, combined using the percentage weights in the
+  recipe above.
+- Recommendations are **ranked from highest score to lowest**.
+- Only the **top `k`** results are returned (default 5).
+- Each recommendation includes **reasons** explaining why it scored the way it did.
+
+Example run for the profile `genre=pop, mood=happy, energy=0.8` (`python src/main.py`):
+
+```text
+Top Recommendations
+===================
+
+1. Shake It Off
+   Score: 100.00%
+   Reasons:
+   - Genre matches your preference for pop
+   - Energy is very close to your preferred level
+   - Mood matches your preference for happy
+
+2. Sunrise City
+   Score: 99.38%
+   Reasons:
+   - Genre matches your preference for pop
+   - Energy is very close to your preferred level
+   - Mood matches your preference for happy
+
+3. Gym Hero
+   Score: 72.92%
+   Reasons:
+   - Genre matches your preference for pop
+   - Energy is close to your preferred level
+   - Mood (intense) differs from your preferred happy
+
+4. Anti-Hero
+   Score: 71.38%
+   Reasons:
+   - Genre matches your preference for pop
+   - Energy is close to your preferred level
+   - Mood (moody) differs from your preferred happy
+
+5. Talking to the Moon
+   Score: 68.31%
+   Reasons:
+   - Genre matches your preference for pop
+   - Energy is lower than your preferred level
+   - Mood (moody) differs from your preferred happy
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->

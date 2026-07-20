@@ -1,5 +1,21 @@
+import csv
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, field
+
+# --- Scoring recipe (see README "How The System Works") -------------------
+# Each feature contributes a 0-1 sub-score; the weights below say how much it
+# counts. They sum to 1.00, so a song's final score is a clean 0%-100% number.
+# Kept as data (not magic numbers scattered in code) so the recipe is easy to
+# tweak for the README "Experiments" section.
+FEATURE_WEIGHTS = [
+    # (key, weight, kind, label shown in reasons)
+    ("genre",        0.30, "categorical", "Genre"),
+    ("energy",       0.20, "numeric",     "Energy"),
+    ("valence",      0.15, "numeric",     "Valence"),
+    ("danceability", 0.15, "numeric",     "Danceability"),
+    ("mood",         0.15, "categorical", "Mood"),
+    ("acousticness", 0.05, "numeric",     "Acousticness"),
+]
 
 @dataclass
 class Song:
@@ -61,32 +77,90 @@ class Recommender:
         # TODO: Implement explanation logic
         return "Explanation placeholder"
 
+NUMERIC_FIELDS = {"energy", "tempo_bpm", "valence", "danceability", "acousticness"}
+
+
 def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file.
-    Required by src/main.py
-    """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
-    return []
+    """Load songs from a CSV file into a list of dicts, numeric fields as floats."""
+    songs: List[Dict] = []
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if not row.get("id"):  # skip blank trailing lines
+                continue
+            song = dict(row)
+            song["id"] = int(row["id"])
+            for field_name in NUMERIC_FIELDS:
+                if song.get(field_name) not in (None, ""):
+                    song[field_name] = float(song[field_name])
+            songs.append(song)
+    return songs
+
+def _numeric_reason(label: str, value: float, target: float, closeness: float) -> str:
+    """Turn a numeric feature's closeness into a human-readable reason."""
+    if closeness >= 0.90:
+        return f"{label} is very close to your preferred level"
+    if closeness >= 0.75:
+        return f"{label} is close to your preferred level"
+    direction = "higher" if value > target else "lower"
+    return f"{label} is {direction} than your preferred level"
+
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """
-    Scores a single song against user preferences.
-    Required by recommend_songs() and src/main.py
-    """
-    # TODO: Implement scoring logic using your Algorithm Recipe from Phase 2.
-    # Expected return format: (score, reasons)
-    return []
+    """Score one song against user_prefs, returning (percent_score, reasons)."""
+    weighted_sum = 0.0
+    used_weight = 0.0
+    reasons: List[str] = []
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
-    """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    for key, weight, kind, label in FEATURE_WEIGHTS:
+        # Only score features the user actually expressed a preference for.
+        pref = user_prefs.get(key)
+        if pref is None or pref == "":
+            continue
+        used_weight += weight
+
+        if kind == "categorical":
+            matched = str(song.get(key, "")).lower() == str(pref).lower()
+            sub = 1.0 if matched else 0.0
+            if matched:
+                reasons.append(f"{label} matches your preference for {pref}")
+            else:
+                reasons.append(f"{label} ({song.get(key)}) differs from your preferred {pref}")
+        else:  # numeric: both values are on the same 0-1 scale
+            target = float(pref)
+            value = float(song.get(key, 0.0))
+            sub = max(0.0, min(1.0, 1.0 - abs(value - target)))
+            reasons.append(_numeric_reason(label, value, target, sub))
+
+        weighted_sum += weight * sub
+
+    if used_weight == 0.0:
+        return 0.0, ["No matching preferences were provided to score this song."]
+
+    # Normalize by the weight actually used so the result is a true 0-100%
+    # even when the user only specified some of the features.
+    score = max(0.0, min(100.0, (weighted_sum / used_weight) * 100.0))
+    return score, reasons
+
+
+def recommend_songs(
+    user_prefs: Dict, songs: List[Dict], k: int = 5
+) -> List[Tuple[Dict, float, List[str]]]:
+    """Score every song, rank high->low, and return the top-k (song, score, reasons)."""
+    # k must be a real integer -- bool is an int subclass, so reject it too.
+    if isinstance(k, bool) or not isinstance(k, int):
+        raise TypeError(f"k must be an integer, got {type(k).__name__}")
+    if k < 0:
+        raise ValueError(f"k must be non-negative, got {k}")
+
+    # Build a new list of (song, score, reasons); never mutate the catalog.
+    scored: List[Tuple[Dict, float, List[str]]] = []
+    for song in songs:
+        score, reasons = score_song(user_prefs, song)
+        scored.append((song, score, reasons))
+
+    # sorted() returns a NEW list; slicing past the end is safe (returns all).
+    ranked = sorted(scored, key=lambda item: item[1], reverse=True)
+    return ranked[:k]
 
 def build_profile(
     name: str,
