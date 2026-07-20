@@ -163,7 +163,7 @@ A lot of this wasn't a total surprise, because I'd already studied how TikTok's 
 works, so seeing similar scoring ideas behind Spotify made sense to me. What *did* catch my
 interest was the idea of **exploration** — that a good recommender will sometimes suggest a
 song that doesn't match your taste on purpose, just to test your reaction and learn more
-about you. It reminded me of using DJ Exxon's Spotify, where it kept surfacing songs I'd
+about you. It reminded me of using DJ X on  Spotify, where it kept surfacing songs I'd
 never heard and I'd think, "how does it know I'd like this?" Now that I understand the
 scoring and the exploration trick behind it, it feels a lot less like magic — and I can
 enjoy it while actually knowing what's going on underneath.
