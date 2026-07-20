@@ -9,8 +9,12 @@ from dataclasses import dataclass, field
 # tweak for the README "Experiments" section.
 FEATURE_WEIGHTS = [
     # (key, weight, kind, label shown in reasons)
-    ("genre",        0.30, "categorical", "Genre"),
-    ("energy",       0.20, "numeric",     "Energy"),
+    # EXPERIMENT (sensitivity test): energy doubled 0.20 -> 0.40 and genre
+    # halved 0.30 -> 0.15. The weights no longer sum to 1.00, but score_song
+    # normalizes by the weight actually used, so the final score stays a valid
+    # 0-100%. Original values are noted in comments for easy revert.
+    ("genre",        0.15, "categorical", "Genre"),        # was 0.30
+    ("energy",       0.40, "numeric",     "Energy"),        # was 0.20
     ("valence",      0.15, "numeric",     "Valence"),
     ("danceability", 0.15, "numeric",     "Danceability"),
     ("mood",         0.15, "categorical", "Mood"),

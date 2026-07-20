@@ -70,6 +70,19 @@ Prompts:
 - Cases where the system overfits to one preference  
 - Ways the scoring might unintentionally favor some users  
 
+**Weakness I discovered during my experiments:** My recommender is surprisingly
+*insensitive* to how I tune it. When I doubled the weight on energy and halved the weight
+on genre, the scores every song received changed, but the actual **ranking barely moved**
+— the top one or two "most-loved" songs stayed exactly where they were, and for the Chill
+Lofi listener the entire top-5 order didn't change at all. In other words, the change made
+the recommendations *different in number but not in order*. This happens because the
+catalog is small and clustered: the best matches already agree on genre, mood, *and* the
+numeric features at once, so no reasonable reweighting is enough to knock them off the top.
+The bias this hides is that the system looks like it's "learning" from my weight choices
+when it really isn't — a listener whose true favorite is ranked #4 would almost never see
+it promoted no matter how I adjust the percentages, because the same crowd-pleasers keep
+winning by default.
+
 ---
 
 ## 7. Evaluation  

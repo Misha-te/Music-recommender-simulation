@@ -177,46 +177,158 @@ How the output is produced:
 - Only the **top `k`** results are returned (default 5).
 - Each recommendation includes **reasons** explaining why it scored the way it did.
 
-Example run for the profile `genre=pop, mood=happy, energy=0.8` (`python src/main.py`):
+Running `python src/main.py` scores every song for three sample listeners and prints
+the top 5 for each:
 
 ```text
-Top Recommendations
-===================
+Top Recommendations — High-Energy Pop
+=====================================
+Profile: genre=pop, mood=happy, energy=0.9, danceability=0.85, valence=0.85
 
-1. Shake It Off
-   Score: 100.00%
+1. Sunrise City
+   Score: 97.21%
    Reasons:
    - Genre matches your preference for pop
    - Energy is very close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is very close to your preferred level
    - Mood matches your preference for happy
 
-2. Sunrise City
-   Score: 99.38%
+2. Shake It Off
+   Score: 93.32%
    Reasons:
    - Genre matches your preference for pop
    - Energy is very close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is close to your preferred level
    - Mood matches your preference for happy
 
 3. Gym Hero
-   Score: 72.92%
+   Score: 81.84%
    Reasons:
    - Genre matches your preference for pop
-   - Energy is close to your preferred level
+   - Energy is very close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is very close to your preferred level
    - Mood (intense) differs from your preferred happy
 
 4. Anti-Hero
-   Score: 71.38%
-   Reasons:
-   - Genre matches your preference for pop
-   - Energy is close to your preferred level
-   - Mood (moody) differs from your preferred happy
-
-5. Talking to the Moon
-   Score: 68.31%
+   Score: 69.95%
    Reasons:
    - Genre matches your preference for pop
    - Energy is lower than your preferred level
+   - Valence is lower than your preferred level
+   - Danceability is close to your preferred level
    - Mood (moody) differs from your preferred happy
+
+5. Sura Yako
+   Score: 65.16%
+   Reasons:
+   - Genre (afropop) differs from your preferred pop
+   - Energy is close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood matches your preference for happy
+
+
+Top Recommendations — Chill Lofi
+================================
+Profile: genre=lofi, mood=chill, energy=0.35, danceability=0.55, acousticness=0.8
+
+1. Library Rain
+   Score: 99.12%
+   Reasons:
+   - Genre matches your preference for lofi
+   - Energy is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood matches your preference for chill
+   - Acousticness is very close to your preferred level
+
+2. Midnight Coding
+   Score: 96.59%
+   Reasons:
+   - Genre matches your preference for lofi
+   - Energy is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood matches your preference for chill
+   - Acousticness is very close to your preferred level
+
+3. Focus Flow
+   Score: 80.18%
+   Reasons:
+   - Genre matches your preference for lofi
+   - Energy is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood (focused) differs from your preferred chill
+   - Acousticness is very close to your preferred level
+
+4. Spacewalk Thoughts
+   Score: 59.88%
+   Reasons:
+   - Genre (ambient) differs from your preferred lofi
+   - Energy is very close to your preferred level
+   - Danceability is close to your preferred level
+   - Mood matches your preference for chill
+   - Acousticness is close to your preferred level
+
+5. Malaika
+   Score: 55.00%
+   Reasons:
+   - Genre (afropop) differs from your preferred lofi
+   - Energy is close to your preferred level
+   - Danceability is close to your preferred level
+   - Mood matches your preference for chill
+   - Acousticness is lower than your preferred level
+
+
+Top Recommendations — Deep Intense Rock
+=======================================
+Profile: genre=rock, mood=intense, energy=0.9, danceability=0.6, valence=0.45
+
+1. Storm Runner
+   Score: 98.37%
+   Reasons:
+   - Genre matches your preference for rock
+   - Energy is very close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood matches your preference for intense
+
+2. Gym Hero
+   Score: 58.32%
+   Reasons:
+   - Genre (pop) differs from your preferred rock
+   - Energy is very close to your preferred level
+   - Valence is higher than your preferred level
+   - Danceability is higher than your preferred level
+   - Mood matches your preference for intense
+
+3. Night Drive Loop
+   Score: 46.79%
+   Reasons:
+   - Genre (synthwave) differs from your preferred rock
+   - Energy is close to your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is close to your preferred level
+   - Mood (moody) differs from your preferred intense
+
+4. Anti-Hero
+   Score: 44.84%
+   Reasons:
+   - Genre (pop) differs from your preferred rock
+   - Energy is lower than your preferred level
+   - Valence is very close to your preferred level
+   - Danceability is very close to your preferred level
+   - Mood (moody) differs from your preferred intense
+
+5. 24K Magic
+   Score: 42.79%
+   Reasons:
+   - Genre (funk) differs from your preferred rock
+   - Energy is very close to your preferred level
+   - Valence is higher than your preferred level
+   - Danceability is close to your preferred level
+   - Mood (happy) differs from your preferred intense
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
